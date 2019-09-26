@@ -1,7 +1,8 @@
 import os
 
 FS = [1]
-
+NUSERS = 100
+KEYFILE = "keys"
 HOSTSFILE = 'hosts'
 HOSTNAME = 'slave-{}'
 ENDPOINT_SUFFIX = ":7050/chaincode"
@@ -32,5 +33,5 @@ HEADERS = {'content-type': 'application/json'}
 
 def execute(cmd):
   os.system(cmd)
-  print cmd
+  print(cmd)
 

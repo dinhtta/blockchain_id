@@ -1,6 +1,7 @@
 import json
 import requests
 from config import *
+from gen import *
 
 def get_nodes():
   x = open(HOSTSFILE, "r")
@@ -69,7 +70,7 @@ def deploy(endpoint, path):
         f.write(chaincodeID)
         f.close()
     else:
-        print "Deployment Failed with msg", res_json
+        print("Deployment Failed with msg", res_json)
         return False, ""
 
 def query_contract(endpoint, args):
@@ -100,38 +101,4 @@ def query_contract(endpoint, args):
     response = requests.post("http://{}:7050/chaincode".format(endpoint), data=json.dumps(query_req), headers=HEADERS)
     print(response.json())
 
-def invoke_contract(fcn_name, args):
-    f = open("{}_0".format(CHAINCODEPATH), 'r')
-    chaincodeID = f.read()
-    f.close()
-    invoke_req = {}
-    invoke_req["jsonrpc"] = "2.0"
-    invoke_req["method"] = "invoke"
-    params = {}
-    params["type"] = 1
 
-    chaincodeID_json = {}
-    chaincodeID_json["name"] = chaincodeID
-
-    params["chaincodeID"] = chaincodeID_json
-
-    ctorMsg = {}
-    ctorMsg["function"] = fcn_name
-    ctorMsg["args"] = args.split(":")
-    params["ctorMsg"] = ctorMsg
-
-    invoke_req["params"] = params
-    invoke_req["id"] = "3"
-
-    invoke_url = config.PeerAddr + "/chaincode"
-    print json.dumps(invoke_req, indent=4, sort_keys=True)
-
-
-    response = requests.post(invoke_url, data=json.dumps(invoke_req), headers=config.Headers)
-    res_json = json.loads(response.text)
-    print json.dumps(res_json, indent=4, sort_keys=True)
-
-    if "OK" in response.text:
-        return True, res_json["result"]["message"]
-    else:
-        return False, ""
