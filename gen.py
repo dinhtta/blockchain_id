@@ -8,7 +8,7 @@ def gen(nkeys=NUSERS):
 	pubkeys = []
 	privkeys = {} # map pubkey -> privkey
 	hashkeys = {} # map pubkey -> hash(pubkey)
-	for i in range(nkeys):
+	for i in range(int(nkeys)):
 		key = RSA.generate(2048)
 		pkey = key.publickey() 
 		x = pkey.exportKey("PEM")	

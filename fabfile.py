@@ -1,5 +1,6 @@
 import json
 import requests
+import pickle
 from config import *
 from gen import *
 
@@ -73,7 +74,48 @@ def deploy(endpoint, path):
         print("Deployment Failed with msg", res_json)
         return False, ""
 
-def query_contract(endpoint, args):
+
+def invoke(endpoint, chaincodeID, func, args):
+  invoke_req = {}
+  invoke_req["jsonrpc"] = "2.0"
+  invoke_req["method"] = "invoke"
+  params = {}
+  params["type"] = 1
+
+  chaincodeID_json = {}
+  chaincodeID_json["name"] = chaincodeID
+
+  params["chaincodeID"] = chaincodeID_json
+
+  ctorMsg = {}
+  ctorMsg["function"] = func
+  ctorMsg["args"] = args
+  params["ctorMsg"] = ctorMsg
+
+  invoke_req["params"] = params
+  invoke_req["id"] = "3"
+
+  invoke_url = "http://{}:7050/chaincode".format(endpoint)
+
+  response = requests.post(invoke_url, data=json.dumps(invoke_req), headers=HEADERS)
+  print(response.json())
+
+def hello():
+  print("Hello world")
+
+def load_data(endpoint):
+  pubkeys = pickle.load(open("pubkeys", "rb"))
+  hashkeys = pickle.load(open("hashkeys", "rb"))
+  f = open(format(CHAINCODEPATH), 'r')
+  chaincodeID = f.read()
+  f.close()
+  for pk in pubkeys:
+    hk = hashkeys[pk]
+    invoke(endpoint, chaincodeID, "register", [str(hk), str(pk)])
+
+
+# test some random ID
+def query_contract(endpoint, n=0):
     query_req = {}
 
     query_req["jsonrpc"] = "2.0"
@@ -90,14 +132,20 @@ def query_contract(endpoint, args):
 
     params["chaincodeID"] = chaincodeID_json
 
+    hashkeys = pickle.load(open("hashkeys", "rb"))
+    pubkeys = pickle.load(open("pubkeys", "rb"))
+    
     ctorMsg = {}
     ctorMsg["function"] = "none" 
-    ctorMsg["args"] = args.split(":")
+    ctorMsg["args"] = [str(hashkeys[pubkeys[int(n)]])] 
+
+    print("expecting: ", pubkeys[int(n)])
 
     params["ctorMsg"] = ctorMsg
     query_req["params"] = params
     query_req["id"] = "3"
 
+    print(json.dumps(query_req))
     response = requests.post("http://{}:7050/chaincode".format(endpoint), data=json.dumps(query_req), headers=HEADERS)
     print(response.json())
 
