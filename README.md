@@ -49,3 +49,16 @@ The `hosts` file contains the list of all server nodes
     + `hostFile`: text file with the list of all servers
     + `nRequestServers`: the driver will only send requests to this number of servers (out of all servers in `hostFile`)
     + `duration`: how long, in seconds, is the expriment
+
+## Invoking external process from smart contract
+There are XXX steps needed to execute an external process from inside smart contract. In step 1, we need to
+set up necessary environment inside Docker containers that run the contract. Next, we need to add the
+binary/script to be loaded together with the contract. 
+
+### Step 1
+Change `scripts/provisions/common.sh` to install necessary dependencies, e.g. Python 
+
+### Step 2
+1. Make sure the file is in the `$GOPATH/src`
+
+2. Edit `core/container/util/writer.go` to include the file type
