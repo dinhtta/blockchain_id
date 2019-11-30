@@ -8,6 +8,7 @@ import (
   "crypto/ecdsa"
   "encoding/base64"
   "math/big"
+  "go.dedis.ch/kyber/suites"
 )
 
 type BlockchainID struct {}
@@ -17,6 +18,8 @@ var counterTab string = "count"
 var pubkeyTab string = "pubkey"
 func main() {
 	err := shim.Start(new(BlockchainID))
+  suite := suites.MustFind("Ed25519")
+  fmt.Printf("%v\n", suite)
 	if err != nil {
 		fmt.Printf("Error starting BlockchainID: %s", err)
 	}
@@ -42,10 +45,13 @@ func (t *BlockchainID) Invoke(stub shim.ChaincodeStubInterface, function string,
       return t.register(stub, args)
     case "update":
       return t.incrementCounter(stub, args)
+    case "test":
+      return t.testExternal(stub, args) 
   }
   return nil, nil
 
 }
+
 
 func (t *BlockchainID) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
   counter_key := counterTab + "_"+ args[0]
@@ -59,6 +65,14 @@ func (t *BlockchainID) Query(stub shim.ChaincodeStubInterface, function string, 
 	//return valAsbytes, err
 }
 
+func (t *BlockchainID) testExternal(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+  out, _:= stub.ExecuteExternalProc("python",
+  []string{"/opt/gopath/src/github.com/hyperledger/fabric/external.py", args[0], args[1]})
+  return nil, fmt.Errorf(string(out))
+}
+
+
 func (t *BlockchainID) register(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
   key := pubkeyTab + "_" + args[0]
   counter_key := counterTab + "_" + args[0]
@@ -68,7 +82,9 @@ func (t *BlockchainID) register(stub shim.ChaincodeStubInterface, args []string)
   stub.PutState(key, []byte(args[1]))
   stub.PutState(counter_key, []byte(strconv.Itoa(0)))
   
-  /*
+  return nil, nil
+
+    /*
   // checking that we can actually get the Public Key back
   raw, _ := base64.StdEncoding.DecodeString(args[1])
   _, err := x509.ParsePKIXPublicKey(raw)
@@ -76,7 +92,6 @@ func (t *BlockchainID) register(stub shim.ChaincodeStubInterface, args []string)
     return nil, fmt.Errorf("Error converting back to public key %v", err)
   }
   */
-  return nil, nil
 }
 
 func (t *BlockchainID) verifySignature(pubKey *ecdsa.PublicKey, value, raw_r, raw_s string) bool {
@@ -104,15 +119,17 @@ func (t *BlockchainID) incrementCounter(stub shim.ChaincodeStubInterface, args [
     raw, _ := base64.StdEncoding.DecodeString(string(pub_raw))
     pub, _ := x509.ParsePKIXPublicKey(raw)
 
+    
     count = count + 1
+    // this is used only for benchmarking (always verified)
+    expected := strconv.Itoa(0)
     //expected := strconv.Itoa(count) 
-    expected := "0"
     if t.verifySignature(pub.(*ecdsa.PublicKey), expected, args[1], args[2]) {
       // update counter
       stub.PutState(counter_key, []byte(expected))
       return []byte("successful"), nil
     } else {
-      return []byte("wrong signature"), fmt.Errorf("Signature cannot be verified")
+      return []byte("wrong signature"), fmt.Errorf("Signature cannot be verified for value %v", expected)
     }
   }
 }
