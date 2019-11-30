@@ -12,6 +12,7 @@ import (
   "io/ioutil"
   "os"
   "time"
+  "fmt"
   )
 
 const REQUEST_PREFIX = `{
@@ -108,6 +109,21 @@ func (c *Client) postRequest(data []byte, endpoint string) rpcResponse {
   var rs rpcResponse
   check(json.NewDecoder(res.Body).Decode(&rs))
   return rs
+}
+
+func (c *Client) testExternal(hashkey, privkey []byte, chaincodeID, endpoint string) rpcResponse {
+  hk := base64.StdEncoding.EncodeToString(hashkey)
+  pk, err := x509.ParseECPrivateKey(privkey)
+  check(err)
+  r, s, err := ecdsa.Sign(rand.Reader, pk, []byte(strconv.Itoa(0)))
+  check(err)
+  rb, _ := r.MarshalText()
+  sb, _ := s.MarshalText()
+  data := makeRequest("invoke", chaincodeID, "test", hk,
+              base64.StdEncoding.EncodeToString(rb),
+              base64.StdEncoding.EncodeToString(sb))
+  fmt.Printf("%s\n", data)
+  return c.postRequest(data, endpoint)
 }
 
 func (c *Client) update(hashkey, privkey []byte, counter int, chaincodeID, endpoint string) rpcResponse {

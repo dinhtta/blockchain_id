@@ -4,6 +4,7 @@ import (
   "fmt"
   "os"
   "strconv"
+  "go.dedis.ch/kyber/suites"
   )
 
 const N=100
@@ -11,6 +12,8 @@ const KEYFILE="keyfile"
 const CONTRACTPATH="blockchainid"
 const CHAINCODEID="chaincodeid"
 func main() {
+  suite := suites.MustFind("Ed25519")
+  fmt.Printf("%v\n", suite)
   c := Client{}
   switch os.Args[1] {
     case "gen": {
@@ -25,6 +28,10 @@ func main() {
       idx, _ := strconv.Atoi(os.Args[2])
       counter, _ := strconv.Atoi(os.Args[3])
       c.Update(KEYFILE, CHAINCODEID, idx, counter, os.Args[4])
+    }
+    case "test": { // test <key index> <endpoint>
+      idx, _ := strconv.Atoi(os.Args[2])
+      c.TestExternal(KEYFILE, CHAINCODEID, idx, os.Args[3])
     }
     case "query": {
       idx, _ := strconv.Atoi(os.Args[2])

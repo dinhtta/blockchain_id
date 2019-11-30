@@ -21,7 +21,7 @@ SLEEP_TIME = 200
 LOG_PATH = '/data/dinhtta/blockchain_id_run{}'
 PEER_LOG = '{}/log_n_{}'
 
-LOGGING_LEVEL = 'warning:consensus/pbft,consensus/executor,consensus/handler=info'
+LOGGING_LEVEL = 'warning:consensus/pbft,consensus/executor,consensus/handler,core/ledger=info'
 ENV_TEMPLATE = 'CORE_PEER_ID=vp{} CORE_PEER_ADDRESSAUTODETECT=true CORE_PEER_NETWORK=blockbench CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN=pbft CORE_PEER_VALIDATOR_CONSENSUS_BUFFERSIZE=2000 CORE_PEER_FILESYSTEMPATH=/data/dinhtta/hyperledger CORE_VM_ENDPOINT=http://localhost:2375 CORE_PBFT_GENERAL_MODE=batch CORE_PBFT_GENERAL_TIMEOUT_REQUEST=10s CORE_PBFT_GENERAL_TIMEOUT_VIEWCHANGE=10s CORE_PBFT_GENERAL_TIMEOUT_RESENDVIEWCHANGE=10s CORE_PBFT_GENERAL_SGX={} CORE_PBFT_GENERAL_N={} CORE_PBFT_GENERAL_F={} '
 ENV_EXTRA = 'CORE_PEER_DISCOVERY_ROOTNODE={}:7051'
 CMD = '"sudo ntpdate -b clock-1.cs.cmu.edu; rm -rf {}; rm -rf {}; mkdir -p {}; cd {}/; {} nohup ./peer node start --logging-level={} > {} 2>&1 &"'

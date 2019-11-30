@@ -65,6 +65,14 @@ func (c *Client) Load(filePath string, chaincodeIDFile string, endpoint string) 
   return nil
 }
 
+func (c *Client) TestExternal(filePath, chaincodeIDFile string, index int, endpoint string) error {
+  chaincodeID, _, privkeys, hashkeys := c.load_keys(filePath, chaincodeIDFile)
+
+  fmt.Printf("TestExternal ...\n")
+  c.testExternal(hashkeys[index], privkeys[index], string(chaincodeID), endpoint) 
+  return nil
+}
+
 func (c *Client) Update(filePath, chaincodeIDFile string, index, counter int, endpoint string) error {
   chaincodeID, _, privkeys, hashkeys := c.load_keys(filePath, chaincodeIDFile)
 
